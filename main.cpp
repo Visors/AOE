@@ -1,71 +1,84 @@
 #include <iostream>
+#include <fstream>
 #include <algorithm>
 #include <vector>
 #include <stack>
+#include <string>
 #include <map>
 
 using namespace std;
 
 struct Edge {
-    int next; // è¾¹ç»ˆç‚¹
-    int weight; // è¾¹æƒ
+    int next; // ±ßÖÕµã
+    int weight; // ±ßÈ¨
 
-    Edge() = default; // é»˜è®¤æ„é€ å‡½æ•°
+    Edge() = default; // Ä¬ÈÏ¹¹Ôìº¯Êı
 
-    Edge(int next, int weight) : next(next), weight(weight) {} // é‡è½½æ„é€ å‡½æ•°
+    Edge(int next, int weight) : next(next), weight(weight) {} // ÖØÔØ¹¹Ôìº¯Êı
 };
 
-vector<vector<Edge>> G; // Gä¸ºAOEç½‘ç»œ
-vector<int> inDegree; // å…¥åº¦å€¼è¡¨
-map<int, int> hashIndex, inverseHashIndex; // hashIndexä¸ºä¸‹æ ‡ç¼–å·ï¼ŒinverseHashIndexä¸ºç¼–å·ä¸‹æ ‡
-int n, m; // nç‚¹æ•°ï¼Œmè¾¹æ•°
-vector<int> topo; // æ‹“æ‰‘åº
+vector<vector<Edge>> G; // GÎªAOEÍøÂç
+vector<int> inDegree; // Èë¶ÈÖµ±í
+map<int, int> hashIndex, inverseHashIndex; // hashIndexÎªÏÂ±ê±àºÅ£¬inverseHashIndexÎª±àºÅÏÂ±ê
+int n, m; // nµãÊı£¬m±ßÊı
+vector<int> topo; // ÍØÆËĞò
 vector<int> vertexEarly, vertexLate;
+string filename;
 
 void init() {
-    cin >> n >> m; // è¯»å…¥ç‚¹æ•°ã€è¾¹æ•°
+    ifstream in("aoe.txt");
+    in >> n >> m; // ¶ÁÈëµãÊı¡¢±ßÊı
+//    cout<<n<<" "<<m<<endl;
     inDegree.clear();
-    inDegree.resize(n, 0); // åˆå§‹åŒ–å…¥è¯»å€¼è¡¨é•¿ä¸ºnï¼Œåˆå§‹å€¼ä¸º0
+    inDegree.resize(n, 0); // ³õÊ¼»¯Èë¶ÁÖµ±í³¤Îªn£¬³õÊ¼ÖµÎª0
     G.clear();
-    G.resize(n); // åˆå§‹åŒ–å›¾ä¸ºnä¸ªèŠ‚ç‚¹
+    G.resize(n); // ³õÊ¼»¯Í¼Îªn¸ö½Úµã
     hashIndex.clear();
     inverseHashIndex.clear();
     for (int i = 0, t; i < n; i++) {
-        cin >> t;
-        hashIndex[t] = i; // ç¼–å·ç´¢å¼•ä¸‹æ ‡
-        inverseHashIndex[i] = t; // ä¸‹æ ‡ç´¢å¼•ç¼–å·
+        in >> t;
+        hashIndex[t] = i; // ±àºÅË÷ÒıÏÂ±ê
+        inverseHashIndex[i] = t; // ÏÂ±êË÷Òı±àºÅ
     }
     for (int i = 0, a, b, s, e, w; i < m; i++) {
-        cin >> a >> b >> w; // cin>>èµ·ç‚¹ç¼–å·>>ç»ˆç‚¹ç¼–å·>>è¾¹æƒ
-        s = hashIndex[a]; // ç´¢å¼•èµ·ç‚¹ä¸‹æ ‡
-        e = hashIndex[b]; // ç´¢å¼•ç»ˆç‚¹ä¸‹æ ‡
-        inDegree[e]++; // ç»ˆç‚¹å…¥è¯»+1
-        G[s].push_back(Edge(e, w)); // æ„å›¾
+        in >> a >> b >> w; // cin>>Æğµã±àºÅ>>ÖÕµã±àºÅ>>±ßÈ¨
+        s = hashIndex[a]; // Ë÷ÒıÆğµãÏÂ±ê
+        e = hashIndex[b]; // Ë÷ÒıÖÕµãÏÂ±ê
+        inDegree[e]++; // ÖÕµãÈë¶Á+1
+        G[s].push_back(Edge(e, w)); // ¹¹Í¼
     }
+    in.close();
 }
 
 bool topSort() {
-    stack<int> s; // è¾…åŠ©æ ˆ
-    for (int i = 0; i < n; i++) if (!inDegree[i]) s.push(i); // å…¥è¯»ä¸º0å‹å…¥æ ˆ
+    stack<int> s; // ¸¨ÖúÕ»
+    for (int i = 0; i < n; i++) if (!inDegree[i]) s.push(i); // Èë¶ÁÎª0Ñ¹ÈëÕ»
     while (!s.empty()) {
         int temp = s.top();
         s.pop();
-        topo.push_back(temp); // æ ˆé¡¶å…ƒç´ å‡ºæ ˆä¸”åŠ å…¥æ‹“æ‰‘åºå°¾
-        // éå†è¯¥ç‚¹ä¸ºèµ·ç‚¹çš„è¾¹ï¼Œå°†å„è¾¹å¯¹åº”ç»ˆç‚¹å…¥åº¦-1
+        topo.push_back(temp); // Õ»¶¥ÔªËØ³öÕ»ÇÒ¼ÓÈëÍØÆËĞòÎ²
+        // ±éÀú¸ÃµãÎªÆğµãµÄ±ß£¬½«¸÷±ß¶ÔÓ¦ÖÕµãÈë¶È-1
         for (int i = 0, next; i < G[temp].size(); i++) {
             next = G[temp][i].next;
             inDegree[next]--;
-            if (inDegree[G[temp][i].next] == 0) s.push(next); // å…¥åº¦å‡ä¸º0ï¼Œå‹å…¥æ ˆ
+            if (inDegree[G[temp][i].next] == 0) s.push(next); // Èë¶È¼õÎª0£¬Ñ¹ÈëÕ»
         }
     }
-    return topo.size() >= n; // å¦‚æœæ‹“æ‰‘åºé•¿åº¦å°äºç‚¹æ•°ï¼Œè¯´æ˜å­˜åœ¨ç¯
+    return topo.size() >= n; // Èç¹ûÍØÆËĞò³¤¶ÈĞ¡ÓÚµãÊı£¬ËµÃ÷´æÔÚ»·
 }
 
 bool criticalPath() {
-    if (!topSort()) return false; // å¦‚æœå­˜åœ¨ç¯ç›´æ¥è¿”å›false
-    for (auto &it:topo) cout << it << " ";
+    if (!topSort()) return false; // Èç¹û´æÔÚ»·Ö±½Ó·µ»Øfalse
+    cout << "ÍØÆËĞò" << endl;
+    bool first = true;
+    for (auto &it:topo) {
+        if (first) {
+            cout << it;
+            first = false;
+        } else cout << "->" << it;
+    }
     cout << endl;
-    // æŒ‰æ‹“æ‰‘åºæ±‚æ¯ä¸ªäº‹ä»¶çš„æœ€æ—©å‘ç”Ÿæ—¶é—´vertexEarly
+    // °´ÍØÆËĞòÇóÃ¿¸öÊÂ¼şµÄ×îÔç·¢ÉúÊ±¼ävertexEarly
     vertexEarly.resize(n, 0);
     for (auto &it:topo) {
         for (int i = 0, next, weight; i < G[it].size(); i++) {
@@ -74,9 +87,16 @@ bool criticalPath() {
             vertexEarly[next] = max(vertexEarly[it] + weight, vertexEarly[next]);
         }
     }
-    for (auto &it:vertexEarly) cout << it << " ";
+    cout << "¸÷ÊÂ¼ş×îÔç·¢ÉúÊ±¼ä" << endl;
+    first = true;
+    for (auto &it:vertexEarly) {
+        if (first) {
+            cout << it;
+            first = false;
+        } else cout << " " << it;
+    }
     cout << endl;
-    // æŒ‰æ‹“æ‰‘åºæ±‚æ¯ä¸ªäº‹ä»¶çš„æœ€æ™šå‘ç”Ÿæ—¶é—´vertexLate
+    // °´ÍØÆËĞòÇóÃ¿¸öÊÂ¼şµÄ×îÍí·¢ÉúÊ±¼ävertexLate
     vertexLate.resize(n, vertexEarly[n - 1]);
     for (int i = n - 1, temp; i >= 0; i--) {
         temp = topo[i];
@@ -86,23 +106,54 @@ bool criticalPath() {
             vertexLate[temp] = min(vertexLate[next] - weight, vertexLate[temp]);
         }
     }
-    for (auto &it:vertexLate) cout << it << " ";
+    cout << "¸÷ÊÂ¼ş×îÍí·¢ÉúÊ±¼ä" << endl;
+    first = true;
+    for (auto &it:vertexLate) {
+        if (first) {
+            cout << it;
+            first = false;
+        } else cout << " " << it;
+    }
     cout << endl;
-    // åˆ¤æ–­æ¯ä¸€æ´»åŠ¨æ˜¯å¦ä¸ºå…³é”®æ´»åŠ¨
+    // ÅĞ¶ÏÃ¿Ò»»î¶¯ÊÇ·ñÎª¹Ø¼ü»î¶¯
+    cout << "¹Ø¼ü»î¶¯[»î¶¯, ×îÔç·¢ÉúÊ±¼ä, ×îÍí·¢ÉúÊ±¼ä]" << endl;
     for (int i = 0; i < n; i++) {
         for (int j = 0, next, weight, early, late; j < G[i].size(); j++) {
             next = G[i][j].next;
             weight = G[i][j].weight;
             early = vertexEarly[i];
             late = vertexLate[next] - weight;
-            if (early == late) cout << "<" << inverseHashIndex[i] << ", " << inverseHashIndex[next] << ">" << endl;
+            if (early == late)
+                cout << "[<" << inverseHashIndex[i] << ", " << inverseHashIndex[next] << ">], " << early << ", " << late
+                     << "]" << endl;
         }
     }
+    cout << "Íê³ÉÕûÏî¹¤³ÌÖÁÉÙĞèÒª" << *max_element(vertexEarly.begin(), vertexEarly.end()) << endl;
     return true;
 }
 
+void menu() {
+    cout << "»¶Ó­Ê¹ÓÃ¹Ø¼üÂ·¾¶Çó½âÏµÍ³" << endl;
+    cout << "1. ´Óaoe.txt¶ÁÈëÊı¾İ" << endl;
+    cout << "0. ÍË³ö" << endl;
+    cout << "ÇëÊäÈë²Ù×÷±àºÅ£º";
+}
+
 int main() {
-    init();
-    criticalPath();
-    return 0;
+    while (true) {
+        menu();
+        int op;
+        cin >> op;
+        switch (op) {
+            case 1:
+                init();
+                criticalPath();
+                break;
+            case 0:
+                return 0;
+            default:
+                cout << "ÎŞ´Ë²Ù×÷£¡" << endl;
+                break;
+        }
+    }
 }
